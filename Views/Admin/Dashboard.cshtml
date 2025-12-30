@@ -1,0 +1,332 @@
+@{
+    Layout = null; // you are using full-page custom layout
+    ViewData["Title"] = "Yönetici Paneli";
+
+    int totalUsers = ViewBag.TotalUsers ?? 0;
+    int totalAdmins = ViewBag.TotalAdmins ?? 0;
+    int totalOrganizers = ViewBag.TotalOrganizers ?? 0;
+    int totalGuests = ViewBag.TotalGuests ?? 0;
+
+    int totalEvents = ViewBag.TotalEvents ?? 0;
+    int upcomingEvents = ViewBag.UpcomingEvents ?? 0;
+    int ongoingEvents = ViewBag.OngoingEvents ?? 0;
+    int completedEvents = ViewBag.CompletedEvents ?? 0;
+
+    int totalTasks = ViewBag.TotalTasks ?? 0;
+    int pendingTasks = ViewBag.PendingTasks ?? 0;
+    int inProgressTasks = ViewBag.InProgressTasks ?? 0;
+    int doneTasks = ViewBag.DoneTasks ?? 0;
+
+    var recentUsers = ViewBag.RecentUsers as List<EventManagementSystem.Models.User> ?? new();
+    var recentEvents = ViewBag.RecentEvents as List<EventManagementSystem.Models.Event> ?? new();
+    var recentTasks = ViewBag.RecentTasks as List<EventManagementSystem.Models.Task> ?? new();
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <title>Yönetici Paneli - Etkinlik Yönetim Sistemi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .navbar {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .navbar h1 {
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        .navbar-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .navbar-right span {
+            color: #666;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+
+        .btn:hover { transform: translateY(-2px); }
+
+        .btn-primary { background: #667eea; color: white; }
+        .btn-logout  { background: #ff4444; color: white; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .card .sub {
+            color: #999;
+            font-size: 13px;
+        }
+
+        .section-title {
+            color: #fff;
+            font-size: 20px;
+            margin: 20px 0 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        th {
+            background: #f8f9fa;
+            color: #555;
+        }
+
+        tr:hover td {
+            background: #fafafa;
+        }
+
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-upcoming { background: #fff3cd; color: #856404; }
+        .status-ongoing  { background: #d1ecf1; color: #0c5460; }
+        .status-completed{ background: #d4edda; color: #155724; }
+
+        .task-status-pending     { background: #fff3cd; color: #856404; }
+        .task-status-inprogress  { background: #d1ecf1; color: #0c5460; }
+        .task-status-done        { background: #d4edda; color: #155724; }
+
+        .empty {
+            font-size: 13px;
+            color: #999;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Yönetici Paneli</h1>
+        <div class="navbar-right">
+            <span>Hoş geldin, <strong>@ViewBag.Username</strong> (Admin)</span>
+            <a href="/Events/Index" class="btn btn-primary">Etkinliklere Git</a>
+            <a href="/Auth/Logout" class="btn btn-logout">Çıkış Yap</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Top stats -->
+        <div class="grid">
+            <div class="card">
+                <h3>Kullanıcılar</h3>
+                <div class="value">@totalUsers</div>
+                <div class="sub">
+                    Admin: @totalAdmins |
+                    Organizatör: @totalOrganizers |
+                    Ziyaretçi: @totalGuests
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Etkinlikler</h3>
+                <div class="value">@totalEvents</div>
+                <div class="sub">
+                    Yaklaşan: @upcomingEvents |
+                    Devam eden: @ongoingEvents |
+                    Tamamlanan: @completedEvents
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Görevler</h3>
+                <div class="value">@totalTasks</div>
+                <div class="sub">
+                    Beklemede: @pendingTasks |
+                    Devam eden: @inProgressTasks |
+                    Bitti: @doneTasks
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Users -->
+        <h2 class="section-title">Son Kullanıcılar</h2>
+        <div class="card">
+            @if (!recentUsers.Any())
+            {
+                <div class="empty">Kullanıcı bulunamadı.</div>
+            }
+            else
+            {
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Kullanıcı Adı</th>
+                            <th>E-posta</th>
+                            <th>Rol</th>
+                            <th>Oluşturulma Tarihi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var u in recentUsers)
+                    {
+                        <tr>
+                            <td>@u.Username</td>
+                            <td>@u.Email</td>
+                            <td>@u.Role</td>
+                            <td>@u.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        <!-- Recent Events -->
+        <h2 class="section-title">Son Etkinlikler</h2>
+        <div class="card">
+            @if (!recentEvents.Any())
+            {
+                <div class="empty">Etkinlik bulunamadı.</div>
+            }
+            else
+            {
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ad</th>
+                            <th>Kategori</th>
+                            <th>Durum</th>
+                            <th>Başlangıç</th>
+                            <th>Bitiş</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var e in recentEvents)
+                    {
+                        var statusClass = e.Status?.ToLower() switch
+                        {
+                            "upcoming"  => "status-upcoming",
+                            "ongoing"   => "status-ongoing",
+                            "completed" => "status-completed",
+                            _           => ""
+                        };
+                        <tr>
+                            <td>@e.Name</td>
+                            <td>@(string.IsNullOrEmpty(e.Category) ? "-" : e.Category)</td>
+                            <td>
+                                <span class="status-badge @statusClass">@e.Status</span>
+                            </td>
+                            <td>@e.StartDate.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@e.EndDate.ToString("yyyy-MM-dd HH:mm")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        <!-- Recent Tasks -->
+        <h2 class="section-title">Son Görevler</h2>
+        <div class="card">
+            @if (!recentTasks.Any())
+            {
+                <div class="empty">Görev bulunamadı.</div>
+            }
+            else
+            {
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ad</th>
+                            <th>Öncelik</th>
+                            <th>Durum</th>
+                            <th>Oluşturulma Tarihi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var t in recentTasks)
+                    {
+                        var statusKey = (t.Status ?? "").ToLower().Replace(" ", "");
+                        var statusClass = statusKey switch
+                        {
+                            "pending"     => "task-status-pending",
+                            "inprogress"  => "task-status-inprogress",
+                            "done"        => "task-status-done",
+                            _             => ""
+                        };
+                        <tr>
+                            <td>@t.Name</td>
+                            <td>@t.Priority</td>
+                            <td><span class="status-badge @statusClass">@t.Status</span></td>
+                            <td>@t.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</body>
+</html>

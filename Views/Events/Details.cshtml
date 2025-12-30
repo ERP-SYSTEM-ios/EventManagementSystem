@@ -1,0 +1,1029 @@
+@model EventManagementSystem.Models.Event
+@{
+    ViewData["Title"] = "Etkinlik Detayları";
+    var canEdit = (bool)ViewBag.CanEdit;
+    var currentUserId = (Guid?)ViewBag.UserId;
+}
+
+@{
+    var invites = ViewBag.Invitations as List<EventManagementSystem.Models.Invitation>;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@Model.Name - Etkinlik Detayları</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .navbar {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .navbar h1 {
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        .navbar-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-back {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ff4444;
+            color: white;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-details {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-logout {
+            background: #dc3545;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .event-header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .event-title-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .event-title {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .event-status {
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .status-upcoming { background: #fff3cd; color: #856404; }
+        .status-ongoing { background: #d1ecf1; color: #0c5460; }
+        .status-completed { background: #d4edda; color: #155724; }
+
+        .event-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            color: #666;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .meta-item strong {
+            color: #333;
+        }
+
+        .tabs {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .tab-buttons {
+            display: flex;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 20px;
+            background: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            background: #f8f9fa;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .info-section {
+            margin-bottom: 25px;
+        }
+
+        .info-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .info-section p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .task-list, .participant-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .task-card, .participant-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .task-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .priority-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .priority-low { background: #d4edda; color: #155724; }
+        .priority-medium { background: #fff3cd; color: #856404; }
+        .priority-high { background: #f8d7da; color: #721c24; }
+        .priority-critical { background: #dc3545; color: white; }
+
+        .task-info {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state h4 {
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .participant-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .participant-details h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .participant-meta {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .invitation-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #17a2b8;
+            margin-bottom: 15px;
+        }
+
+        .invitation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .invitation-email {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-accepted { background: #d4edda; color: #155724; }
+        .status-declined { background: #f8d7da; color: #721c24; }
+
+        .invitation-info {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .my-invitation-notice {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .my-invitation-notice h4 {
+            color: #0c5460;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Etkinlik Yönetim Sistemi</h1>
+        <a href="/Invitations/My" class="btn btn-primary">Davetler</a>
+
+        <div class="navbar-right">
+        
+            <a href="/Events/Index" class="btn btn-back">← Etkinliklere Dön</a>
+
+            @if (canEdit)
+            {
+                <a href="/Events/Edit/@Model.Id" class="btn btn-primary">Etkinliği Düzenle</a>
+                <a href="/Events/Delete/@Model.Id" class="btn btn-danger" onclick="return confirm('Bu etkinliği silmek istediğinizden emin misiniz?')">Etkinliği Sil</a>
+            }
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="event-header">
+            <div class="event-title-section">
+                <div>
+                    <h1 class="event-title">@Model.Name</h1>
+                    @if (!string.IsNullOrEmpty(Model.Category))
+                    {
+                        <p style="color: #999;">📁 @Model.Category</p>
+                    }
+                </div>
+                <span class="event-status status-@Model.Status.ToLower()">@Model.Status</span>
+            </div>
+
+            <div class="event-meta">
+                <div class="meta-item">
+                    <span>📅</span>
+                    <div>
+                        <strong>Başlangıç:</strong> @Model.StartDate.ToString("dd MMM yyyy HH:mm")
+                    </div>
+                </div>
+                <div class="meta-item">
+                    <span>🏁</span>
+                    <div>
+                        <strong>Bitiş:</strong> @Model.EndDate.ToString("dd MMM yyyy HH:mm")
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Location))
+                {
+                    <div class="meta-item">
+                        <span>📍</span>
+                        <div>
+                            <strong>Konum:</strong> @Model.Location
+                        </div>
+                    </div>
+                }
+                @if (Model.Budget.HasValue)
+                {
+                    <div class="meta-item">
+                        <span>💰</span>
+                        <div>
+                            <strong>Bütçe:</strong> ₺@Model.Budget.Value.ToString("N2")
+                        </div>
+                    </div>
+                }
+                <div class="meta-item">
+                    <span>👤</span>
+                    <div>
+                        <strong>Organizatör:</strong> @Model.Organizer?.Username
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Kullanıcının kendi daveti varsa göster *@
+        @if (ViewBag.MyInvitationId != null && ViewBag.MyInvitationStatus == "Pending")
+        {
+            <div class="my-invitation-notice">
+                <h4>📩 Bu etkinliğe davet edildiniz!</h4>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <form method="post" action="/Invitations/Respond">
+                        <input type="hidden" name="invitationId" value="@ViewBag.MyInvitationId" />
+                        <input type="hidden" name="status" value="Accepted" />
+                        <button type="submit" class="btn btn-success">✅ Kabul Et</button>
+                    </form>
+
+                    <form method="post" action="/Invitations/Respond">
+                        <input type="hidden" name="invitationId" value="@ViewBag.MyInvitationId" />
+                        <input type="hidden" name="status" value="Declined" />
+                        <button type="submit" class="btn btn-logout">❌ Reddet</button>
+                    </form>
+                </div>
+            </div>
+        }
+
+        <div class="tabs">
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('overview', this)">📋 Genel Bakış</button>
+                <button class="tab-btn" onclick="switchTab('tasks', this)">✅ Görevler</button>
+                <button class="tab-btn" onclick="switchTab('participants', this)">👥 Görev Alanlar</button>
+                <button class="tab-btn" onclick="switchTab('invitations', this)">📨 Davetler</button>
+            </div>
+
+            <!-- Genel Bakış Sekmesi -->
+            <div id="overview-tab" class="tab-content active">
+                <div class="info-section">
+                    <h3>Açıklama</h3>
+                    <p>@(string.IsNullOrEmpty(Model.Description) ? "Açıklama eklenmemiş." : Model.Description)</p>
+                </div>
+            </div>
+
+            <!-- Görevler Sekmesi -->
+            <div id="tasks-tab" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3>Görevler</h3>
+                    @if (canEdit)
+                    {
+                        <button class="btn btn-primary" onclick="openAddTaskModal()">+ Görev Ekle</button>
+                    }
+                </div>
+                <div id="tasks-container" class="task-list">
+                    <div class="empty-state">
+                        <h4>Görevler yükleniyor...</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Katılımcılar Sekmesi -->
+            <div id="participants-tab" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3>Görev Alanlar</h3>
+                    @if (canEdit)
+                    {
+                        <button class="btn btn-primary" onclick="openAddParticipantModal()">+ Katılımcı Davet Et</button>
+                    }
+                </div>
+                <div id="participants-container" class="participant-list">
+                    <div class="empty-state">
+                        <h4>Görev Alanlar yükleniyor...</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Davetler Sekmesi -->
+            <div id="invitations-tab" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3>Davetler</h3>
+                    @if (ViewBag.UserRole == "Organizer" || ViewBag.UserRole == "Admin")
+                    {
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn btn-primary" onclick="openInviteModal()">📩 Davet Gönder</button>
+                        </div>
+                    }
+                </div>
+
+                <div id="invitations-container">
+                    @if (invites != null && invites.Any())
+                    {
+                        foreach (var inv in invites)
+                        {
+                            var statusClass = inv.Status.ToLower().Replace(" ", "-");
+                            var statusText = inv.Status == "Pending" ? "Beklemede" : 
+                                           inv.Status == "Accepted" ? "Kabul Edildi" : 
+                                           inv.Status == "Declined" ? "Reddedildi" : inv.Status;
+
+                            <div class="invitation-card">
+                                <div class="invitation-header">
+                                    <div>
+                                        <div class="invitation-email">@(inv.InvitedEmail ?? inv.InvitedUserId?.ToString() ?? "Bilinmeyen")</div>
+                                        <div class="invitation-info">👤 Rol: @(inv.InvitedRole == "Guest" ? "Misafir" : inv.InvitedRole == "Organizer" ? "Organizatör" : inv.InvitedRole)</div>
+                                        <div class="invitation-info">📅 Gönderim: @inv.CreatedAt.ToString("dd MMM yyyy HH:mm")</div>
+                                    </div>
+                                    <span class="status-badge status-@statusClass">@statusText</span>
+                                </div>
+                                
+                                @if (inv.Status == "Pending" && ViewBag.CanEdit == true)
+                                {
+                                    <div class="action-buttons">
+                                        <form asp-controller="Invitations" asp-action="Cancel" method="post" style="display:inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@inv.Id" />
+                                            <button type="submit" class="btn btn-danger btn-small">İptal Et</button>
+                                        </form>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <h4>Henüz davet gönderilmedi</h4>
+                            <p>İlk davetinizi gönderin!</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Görev Ekleme Modalı -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Yeni Görev Ekle</h3>
+                <button class="close-btn" onclick="closeTaskModal()">&times;</button>
+            </div>
+            <form id="taskForm" onsubmit="submitTask(event)">
+                <div class="form-group">
+                    <label>Görev Adı *</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label>Açıklama</label>
+                    <textarea name="description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Son Tarih (İsteğe Bağlı)</label>
+                    <input type="datetime-local" name="dueDate">
+                </div>
+                <div class="form-group">
+                    <label>Öncelik *</label>
+                    <select name="priority" required>
+                        <option value="Low">Düşük</option>
+                        <option value="Medium" selected>Orta</option>
+                        <option value="High">Yüksek</option>
+                        <option value="Critical">Kritik</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Bütçe (Tutar)</label>
+                    <input type="number" step="0.01" name="budget" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label>Yorum</label>
+                    <textarea name="comment"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Atanan Kişi (İsteğe Bağlı)</label>
+                    <select name="assignedTo" id="assignToSelect">
+                        <option value="">-- Atanmadı --</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="closeTaskModal()" style="background: #ccc;">İptal</button>
+                    <button type="submit" class="btn btn-success">Görev Oluştur</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Katılımcı Davet Modalı -->
+    <div id="participantModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Katılımcı Davet Et</h3>
+                <button class="close-btn" onclick="closeParticipantModal()">&times;</button>
+            </div>
+            <div>
+                <div class="form-group">
+                    <label for="inviteUsername">Kullanıcı Adı</label>
+                    <input type="text" id="inviteUsername" placeholder="Kullanıcı adını girin" />
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="closeParticipantModal()" style="background: #ccc;">İptal</button>
+                    <button type="button" class="btn btn-success" onclick="inviteUserByUsername()">Davet Et</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Davet Gönderme Modalı -->
+    <div id="inviteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Davet Gönder</h3>
+                <button class="close-btn" onclick="closeInviteModal()">&times;</button>
+            </div>
+            <form asp-controller="Invitations" asp-action="Send" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="eventId" value="@Model.Id" />
+
+                <div class="form-group">
+                    <label for="inviteTo">E-posta veya Kullanıcı Adı *</label>
+                    <input type="text" name="inviteTo" placeholder="E-posta veya kullanıcı adı girin" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="invitedRole">Rol *</label>
+                    <select name="invitedRole">
+                        <option value="Guest">Misafir</option>
+                        <option value="Organizer">Organizatör</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="closeInviteModal()" style="background: #ccc;">İptal</button>
+                    <button type="submit" class="btn btn-success">Davet Gönder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Görev Düzenleme Modalı -->
+    <div id="editTaskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Görevi Düzenle</h3>
+                <button class="close-btn" onclick="closeEditTaskModal()">&times;</button>
+            </div>
+            <form id="editTaskForm" onsubmit="submitEditTask(event)">
+                <input type="hidden" id="editTaskId" />
+
+                <div class="form-group">
+                    <label>Durum</label>
+                    <select id="editTaskStatus">
+                        <option value="Pending">Beklemede</option>
+                        <option value="In Progress">Devam Ediyor</option>
+                        <option value="Done">Tamamlandı</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Yorum</label>
+                    <textarea id="editTaskComment"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn" onclick="closeEditTaskModal()" style="background:#ccc;">İptal</button>
+                    <button type="submit" class="btn btn-success">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const eventId = '@Model.Id';
+        const canEdit = @(canEdit ? "true" : "false");
+        const userRole = '@(ViewBag.UserRole ?? "")';
+        const currentUserIdStr = '@(currentUserId?.ToString() ?? "")'.toLowerCase();
+        let tasksCache = [];
+
+        function switchTab(tabName, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            btn.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+
+            if (tabName === 'tasks') loadTasks();
+            if (tabName === 'participants') loadParticipants();
+        }
+
+        function openEditTaskModal(taskId) {
+            const task = tasksCache.find(t => t.id === taskId);
+            if (!task) return;
+
+            document.getElementById('editTaskId').value = taskId;
+            document.getElementById('editTaskStatus').value = task.status || 'Pending';
+            document.getElementById('editTaskComment').value = task.comment || '';
+
+            document.getElementById('editTaskModal').classList.add('active');
+        }
+
+        function closeEditTaskModal() {
+            document.getElementById('editTaskModal').classList.remove('active');
+        }
+
+        async function submitEditTask(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('editTaskId').value;
+            const status = document.getElementById('editTaskStatus').value;
+            const comment = document.getElementById('editTaskComment').value;
+
+            try {
+                const resp = await fetch('/Events/UpdateTask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, status, comment })
+                });
+
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    alert(data.error || 'Görev güncellenirken hata oluştu');
+                    return;
+                }
+
+                closeEditTaskModal();
+                loadTasks();
+            } catch (err) {
+                console.error('Görev güncelleme hatası:', err);
+                alert('Görev güncellenirken hata oluştu');
+            }
+        }
+
+        async function loadTasks() {
+            try {
+                const response = await fetch(`/Events/GetTasks/${eventId}`);
+                const tasks = await response.json();
+                tasksCache = tasks;
+
+                const container = document.getElementById('tasks-container');
+                if (tasks.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><h4>Henüz görev yok</h4><p>İlk görevinizi ekleyerek başlayın!</p></div>';
+                    return;
+                }
+
+                container.innerHTML = tasks.map(task => {
+                    const assignedTo = task.assignedTo || task.assignedTo;
+                    const canEditTask =
+                        userRole === 'Admin' ||
+                        userRole === 'Organizer' ||
+                        (currentUserIdStr && assignedTo && assignedTo.toLowerCase() === currentUserIdStr);
+
+                    const priorityMap = {
+                        'Low': 'Düşük',
+                        'Medium': 'Orta',
+                        'High': 'Yüksek',
+                        'Critical': 'Kritik'
+                    };
+
+                    const statusMap = {
+                        'Pending': 'Beklemede',
+                        'In Progress': 'Devam Ediyor',
+                        'Done': 'Tamamlandı'
+                    };
+
+                    return `
+                        <div class="task-card">
+                            <div class="task-header">
+                                <div class="task-title">${task.name}</div>
+                                <span class="priority-badge priority-${task.priority.toLowerCase()}">${priorityMap[task.priority] || task.priority}</span>
+                            </div>
+                            ${task.description ? `<p class="task-info">${task.description}</p>` : ''}
+                            ${task.dueDate ? `<div class="task-info">📅 Son Tarih: ${new Date(task.dueDate).toLocaleString('tr-TR')}</div>` : '<div class="task-info">📅 Son tarih yok</div>'}
+                            ${task.budget ? `<div class="task-info">💰 Bütçe: ₺${parseFloat(task.budget).toFixed(2)}</div>` : ''}
+                            ${task.comment ? `<div class="task-info">💬 ${task.comment}</div>` : ''}
+                            <div class="task-info">👤 Atanan: ${task.assignedUser?.username || 'Atanmadı'}</div>
+                            <div class="task-info">Durum: <strong>${statusMap[task.status] || task.status}</strong></div>
+                            ${canEditTask ? `
+                                <div class="task-info" style="margin-top:8px;">
+                                    <button class="btn btn-primary btn-small" onclick="openEditTaskModal('${task.id}')">Görevi Düzenle</button>
+                                </div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Görevler yüklenirken hata:', error);
+            }
+        }
+
+        async function loadParticipants() {
+            try {
+                const response = await fetch(`/Events/GetParticipants/${eventId}`);
+                const participants = await response.json();
+
+                const container = document.getElementById('participants-container');
+                if (participants.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><h4>Henüz katılımcı yok</h4><p>İlk katılımcınızı davet edin!</p></div>';
+                    return;
+                }
+
+                container.innerHTML = participants.map(p => {
+                    const userObj = p.user ?? p.User;
+                    const username = userObj?.username ?? userObj?.Username ?? 'Bilinmeyen Kullanıcı';
+                    const email = userObj?.email ?? userObj?.Email ?? 'Yok';
+
+                    return `
+                        <div class="participant-card">
+                            <div class="participant-info">
+                                <div class="participant-details">
+                                    <h4>${username}</h4>
+                                    <div class="participant-meta">
+                                        📧 ${email}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Görev Alanlar yüklenirken hata:', error);
+            }
+        }
+
+        async function loadAssignToDropdown() {
+            try {
+                const resp = await fetch(`/Events/GetParticipants/${eventId}`);
+                const participants = await resp.json();
+
+                const dropdown = document.getElementById("assignToSelect");
+                dropdown.innerHTML = `<option value="">-- Atanmadı --</option>`;
+
+                participants.forEach(p => {
+                    const userId = p.userId ?? p.UserId;
+                    const userObj = p.user ?? p.User;
+                    const username = userObj?.username ?? userObj?.Username;
+
+                    if (userId && username) {
+                        dropdown.innerHTML += `
+                            <option value="${userId}">
+                                ${username}
+                            </option>`;
+                    }
+                });
+            } catch (err) {
+                console.error("Atama listesi yüklenirken hata:", err);
+            }
+        }
+
+        function openAddTaskModal() {
+            loadAssignToDropdown();
+            document.getElementById('taskModal').classList.add('active');
+        }
+
+        function closeTaskModal() {
+            document.getElementById('taskModal').classList.remove('active');
+            document.getElementById('taskForm').reset();
+        }
+
+        function openAddParticipantModal() {
+            document.getElementById('participantModal').classList.add('active');
+        }
+
+        function closeParticipantModal() {
+            document.getElementById('participantModal').classList.remove('active');
+            document.getElementById('inviteUsername').value = '';
+        }
+
+        function openInviteModal() {
+            document.getElementById('inviteModal').classList.add('active');
+        }
+
+        function closeInviteModal() {
+            document.getElementById('inviteModal').classList.remove('active');
+        }
+
+        async function submitTask(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            const task = {
+                eventId: eventId,
+                name: formData.get('name'),
+                description: formData.get('description') || null,
+                dueDate: formData.get('dueDate') || null,
+                priority: formData.get('priority'),
+                budget: formData.get('budget') ? parseFloat(formData.get('budget')) : null,
+                comment: formData.get('comment') || null,
+                assignedTo: formData.get('assignedTo') || null,
+                status: 'Pending'
+            };
+
+            try {
+                const response = await fetch('/Events/AddTask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(task)
+                });
+
+                if (response.ok) {
+                    closeTaskModal();
+                    loadTasks();
+                } else {
+                    const data = await response.json().catch(() => null);
+                    alert(data?.error || 'Görev oluşturulurken hata oluştu');
+                }
+            } catch (error) {
+                console.error('Hata:', error);
+                alert('Görev oluşturulurken hata oluştu');
+            }
+        }
+
+        async function inviteUserByUsername() {
+            const username = document.getElementById("inviteUsername").value.trim();
+            if (!username) {
+                alert("Lütfen bir kullanıcı adı girin.");
+                return;
+            }
+
+            try {
+                const resp = await fetch("/Events/AddParticipant", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ eventId, username })
+                });
+
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    alert(data.error || "Kullanıcı davet edilirken hata oluştu.");
+                    return;
+                }
+
+                alert("Kullanıcı davet edildi!");
+                closeParticipantModal();
+                loadParticipants();
+                loadAssignToDropdown();
+            } catch (err) {
+                console.error(err);
+                alert("Beklenmeyen bir hata oluştu.");
+            }
+        }
+
+        // Initial load
+        loadTasks();
+        loadParticipants();
+    </script>
+</body>
+</html>

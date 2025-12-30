@@ -1,0 +1,187 @@
+@model EventManagementSystem.Models.Event
+@{
+    Layout = null; // you’re using full-page views
+    ViewData["Title"] = "Etkinliği Düzenle";
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <title>@Model.Name - Etkinliği Düzenle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .navbar {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .navbar h1 {
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-back {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary {
+            background: #28a745;
+            color: white;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Etkinliği Düzenle</h1>
+        <a href="/Events/Details/@Model.Id" class="btn btn-back">← Detaylara Geri Dön</a>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>@Model.Name</h2>
+
+            @if (ViewBag.Error != null)
+            {
+                <div style="background:#fee;color:#c33;padding:10px;margin-bottom:15px;border-radius:5px;">
+                    @ViewBag.Error
+                </div>
+            }
+
+            <form method="post" asp-action="Edit">
+                <input type="hidden" asp-for="Id" />
+
+                <div class="form-group">
+                    <label asp-for="Name">Etkinlik Adı *</label>
+                    <input asp-for="Name" />
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Category">Kategori</label>
+                    <input asp-for="Category" />
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Description">Açıklama</label>
+                    <textarea asp-for="Description"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="StartDate">Başlangıç Tarihi</label>
+                    <input asp-for="StartDate" type="datetime-local"
+                           value="@Model.StartDate.ToString("yyyy-MM-ddTHH:mm")" />
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="EndDate">Bitiş Tarihi</label>
+                    <input asp-for="EndDate" type="datetime-local"
+                           value="@Model.EndDate.ToString("yyyy-MM-ddTHH:mm")" />
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Location">Konum</label>
+                    <input asp-for="Location" />
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Status">Durum</label>
+                    <select asp-for="Status">
+                        <option value="Upcoming" selected="@("Upcoming".Equals(Model.Status))">Yaklaşan</option>
+                        <option value="Ongoing" selected="@("Ongoing".Equals(Model.Status))">Devam Ediyor</option>
+                        <option value="Completed" selected="@("Completed".Equals(Model.Status))">Tamamlandı</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Budget">Bütçe</label>
+                    <input asp-for="Budget" type="number" step="0.01" />
+                </div>
+
+                <div class="form-actions">
+                    <a href="/Events/Details/@Model.Id" class="btn">İptal</a>
+                    <button type="submit" class="btn btn-primary">Değişiklikleri Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

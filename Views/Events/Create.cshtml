@@ -1,0 +1,319 @@
+@model EventManagementSystem.Models.Event
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etkinlik Oluştur - Etkinlik Yönetim Sistemi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .navbar {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .navbar h1 {
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        .navbar-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-back {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-logout {
+            background: #ff4444;
+            color: white;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        label span {
+            color: #ff4444;
+        }
+
+        input[type="text"],
+        input[type="datetime-local"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .warning-text {
+            font-size: 12px;
+            color: #b36b00;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Etkinlik Yönetim Sistemi</h1>
+        <div class="navbar-right">
+            <a href="/Events/Index" class="btn btn-back">← Etkinliklere Dön</a>
+            <a href="/Auth/Logout" class="btn btn-logout">Çıkış Yap</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Yeni Etkinlik Oluştur</h2>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="error-message">@ViewBag.Error</div>
+        }
+
+        <form method="post" asp-action="Create">
+            <div class="form-group">
+                <label for="Name">Etkinlik Adı <span>*</span></label>
+                <input type="text" id="Name" name="Name" required placeholder="Örn: Yıllık Teknoloji Konferansı 2024" />
+            </div>
+
+            <div class="form-group">
+                <label for="Description">Açıklama</label>
+                <textarea id="Description" name="Description" placeholder="Etkinliğinizi açıklayın..."></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="CategoryId">Kategori</label>
+                    <select id="CategoryId" name="CategoryId">
+                        <option value="">Kategori Seçin</option>
+                    </select>
+                    <div class="helper-text">Kategori listesi API üzerinden (categories tablosu) yüklenir.</div>
+                    <div id="CategoryLoadWarning" class="warning-text" style="display:none;">
+                        Kategoriler yüklenemedi (API kapalı olabilir). Yine de formu gönderebilirsin.
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="Status">Durum <span>*</span></label>
+                    <select id="Status" name="Status" required>
+                        <option value="Upcoming">Yaklaşan</option>
+                        <option value="Ongoing">Devam Ediyor</option>
+                        <option value="Completed">Tamamlandı</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="StartDate">Başlangıç Tarihi & Saati <span>*</span></label>
+                    <input type="datetime-local" id="StartDate" name="StartDate" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="EndDate">Bitiş Tarihi & Saati <span>*</span></label>
+                    <input type="datetime-local" id="EndDate" name="EndDate" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="LocationId">Konum</label>
+                <select id="LocationId" name="LocationId">
+                    <option value="">Konum Seçin</option>
+                </select>
+                <div class="helper-text">Konum listesi API üzerinden (locations tablosu) yüklenir.</div>
+                <div id="LocationLoadWarning" class="warning-text" style="display:none;">
+                    Konumlar yüklenemedi (API kapalı olabilir). Yine de formu gönderebilirsin.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="Location">Ek Konum Notu (Opsiyonel)</label>
+                <input type="text" id="Location" name="Location" placeholder="Örn: Kat 2, Salonun sol tarafı" />
+            </div>
+
+            <div class="form-group">
+                <label for="Budget">Bütçe ($)</label>
+                <input type="number" id="Budget" name="Budget" step="0.01" min="0" placeholder="Örn: 5000.00" />
+                <div class="helper-text">Opsiyonel: Bu etkinlik için bütçe girin</div>
+            </div>
+
+            <button type="submit" class="btn-submit">Etkinliği Oluştur</button>
+        </form>
+    </div>
+
+    <script>
+        // Minimum tarihi bugün yap
+        const today = new Date().toISOString().slice(0, 16);
+        document.getElementById('StartDate').min = today;
+
+        // Başlangıç değişince bitişin minimumunu güncelle
+        document.getElementById('StartDate').addEventListener('change', function() {
+            document.getElementById('EndDate').min = this.value;
+        });
+
+        // Dropdownları API'den yükle
+        async function loadDropdowns() {
+            const catSelect = document.getElementById('CategoryId');
+            const locSelect = document.getElementById('LocationId');
+
+            const catWarn = document.getElementById('CategoryLoadWarning');
+            const locWarn = document.getElementById('LocationLoadWarning');
+
+            try {
+                const catRes = await fetch('/api/CategoriesApi');
+                if (!catRes.ok) throw new Error('Categories API failed');
+                const categories = await catRes.json();
+
+                // expected demo format: [{ id, name, ... }]
+                categories.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.name ?? c.title ?? c.categoryName ?? 'Kategori';
+                    catSelect.appendChild(opt);
+                });
+            } catch (e) {
+                console.error('Category load failed:', e);
+                catWarn.style.display = 'block';
+            }
+
+            try {
+                const locRes = await fetch('/api/LocationsApi');
+                if (!locRes.ok) throw new Error('Locations API failed');
+                const locations = await locRes.json();
+
+                // expected demo format: [{ id, name, city, capacity, ... }]
+                locations.forEach(l => {
+                    const opt = document.createElement('option');
+                    opt.value = l.id;
+                    const name = l.name ?? 'Konum';
+                    const city = l.city ? ` (${l.city})` : '';
+                    opt.textContent = name + city;
+                    locSelect.appendChild(opt);
+                });
+            } catch (e) {
+                console.error('Location load failed:', e);
+                locWarn.style.display = 'block';
+            }
+        }
+
+        loadDropdowns();
+    </script>
+</body>
+</html

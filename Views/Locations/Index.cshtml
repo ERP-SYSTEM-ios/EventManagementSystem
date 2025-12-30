@@ -1,0 +1,166 @@
+@model List<EventManagementSystem.Models.Location>
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Konumlar - Etkinlik Yönetim Sistemi</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body{
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height:100vh;
+            padding:20px;
+        }
+        .navbar{
+            background:white;
+            padding:15px 30px;
+            border-radius:10px;
+            margin-bottom:30px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            box-shadow:0 5px 15px rgba(0,0,0,0.1);
+        }
+        .navbar h1{ color:#667eea; font-size:22px; }
+        .navbar-right{ display:flex; gap:12px; align-items:center; }
+        .btn{
+            padding:10px 16px;
+            border:none;
+            border-radius:6px;
+            cursor:pointer;
+            text-decoration:none;
+            font-weight:700;
+            transition:transform .2s, opacity .2s;
+            display:inline-block;
+        }
+        .btn:hover{ transform: translateY(-2px); opacity:.95; }
+        .btn-back{ background:#95a5a6; color:#fff; }
+        .btn-primary{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color:#fff;
+        }
+        .container{
+            max-width:1100px;
+            margin:0 auto;
+            background:white;
+            padding:30px;
+            border-radius:12px;
+            box-shadow:0 10px 25px rgba(0,0,0,0.2);
+        }
+        .header{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-end;
+            gap:12px;
+            margin-bottom:18px;
+            flex-wrap:wrap;
+        }
+        .header h2{ color:#333; }
+        .muted{ color:#777; font-size:13px; }
+        .pill{
+            display:inline-block;
+            padding:6px 10px;
+            border-radius:999px;
+            background:#eef2ff;
+            color:#3b4cca;
+            font-weight:700;
+            font-size:12px;
+        }
+        table{
+            width:100%;
+            border-collapse:collapse;
+            overflow:hidden;
+            border-radius:10px;
+            border:1px solid #eee;
+        }
+        th, td{
+            padding:14px 12px;
+            text-align:left;
+            border-bottom:1px solid #eee;
+            font-size:14px;
+            vertical-align:top;
+        }
+        th{
+            background:#f7f7fb;
+            color:#444;
+            font-weight:800;
+        }
+        tr:hover td{ background:#fafafe; }
+        .empty{
+            padding:18px;
+            border:1px dashed #ddd;
+            border-radius:10px;
+            color:#666;
+            background:#fcfcff;
+            margin-top:12px;
+        }
+        .sub{
+            color:#666;
+            font-size:12px;
+            margin-top:4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Etkinlik Yönetim Sistemi</h1>
+        <div class="navbar-right">
+            <a href="/Events/Index" class="btn btn-back">← Etkinliklere Dön</a>
+            <a href="/Locations/Create" class="btn btn-primary">➕ Yeni Konum</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div>
+                <h2>Konumlar</h2>
+                <div class="muted">Etkinliklerin yapılacağı konumları buradan yönet.</div>
+            </div>
+            <div class="pill">Toplam: @Model.Count</div>
+        </div>
+
+        @if (Model.Count == 0)
+        {
+            <div class="empty">
+                Henüz konum yok. <a href="/Locations/Create">Yeni konum ekle</a>.
+            </div>
+        }
+        else
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:25%;">Ad</th>
+                        <th style="width:15%;">Şehir</th>
+                        <th>Adres</th>
+                        <th style="width:12%;">Kapasite</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var l in Model)
+                {
+                    <tr>
+                        <td>
+                            <strong>@l.Name</strong>
+                            @if (!string.IsNullOrWhiteSpace(l.Address))
+                            {
+                                <div class="sub">@l.Address</div>
+                            }
+                        </td>
+                        <td>@(string.IsNullOrWhiteSpace(l.City) ? "-" : l.City)</td>
+                        <td>@(string.IsNullOrWhiteSpace(l.Address) ? "-" : l.Address)</td>
+                        <td>@(l.Capacity.HasValue ? l.Capacity.Value.ToString() : "-")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
+</body>
+</html>

@@ -1,0 +1,346 @@
+@model List<EventManagementSystem.Models.Event>
+@{
+    ViewData["Title"] = "Etkinliklerim";
+
+    // Maps: Guid -> string (CategoryName / LocationName)
+    var categoryMap = ViewBag.CategoryMap as Dictionary<Guid, string> ?? new Dictionary<Guid, string>();
+    var locationMap = ViewBag.LocationMap as Dictionary<Guid, string> ?? new Dictionary<Guid, string>();
+
+    string userRole = ViewBag.UserRole as string ?? "";
+    string username = ViewBag.Username as string ?? "";
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etkinliklerim - Etkinlik Yönetim Sistemi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .navbar {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .navbar h1 {
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        .navbar-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .user-info {
+            color: #666;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-logout {
+            background: #ff4444;
+            color: white;
+        }
+
+        .btn-details {
+            background: #4ecdc4;
+            color: white;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h2 {
+            color: #333;
+        }
+
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .event-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .event-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .event-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .event-title {
+            color: #333;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .event-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-upcoming {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-ongoing {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .event-info {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .event-info strong {
+            color: #333;
+        }
+
+        .event-description {
+            color: #777;
+            font-size: 14px;
+            margin: 15px 0;
+            line-height: 1.5;
+        }
+
+        .event-footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .organizer-info {
+            color: #999;
+            font-size: 13px;
+        }
+
+        .empty-state {
+            background: white;
+            padding: 60px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .empty-state h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .empty-state p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="navbar">
+        <h1>Etkinlik Yönetim Sistemi</h1>
+
+
+        <div class="navbar-right">
+            <span class="user-info">Hoş geldin, <strong>@username</strong> (@userRole)</span>
+
+            @if (userRole == "Admin")
+            {
+                <a href="/Admin/Dashboard" class="btn btn-primary">Yönetici Paneli</a>
+            }
+
+            <a href="/Auth/Logout" class="btn btn-logout">Çıkış Yap</a>
+        </div>
+    </div>
+
+    <div class="header">
+        <h2>Etkinliklerim</h2>
+        <a href="/Invitations/My" class="btn btn-primary">Davetler</a>
+
+
+        @if (userRole == "Organizer" || userRole == "Admin")
+        {
+            <a href="/Events/Create" class="btn btn-primary">+ Yeni Etkinlik Oluştur</a>
+        }
+    </div>
+
+    <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap;">
+        <a href="/Categories" class="btn btn-details">📌 Kategori Yönetimi</a>
+        <a href="/Locations" class="btn btn-details">📍 Konum Yönetimi</a>
+    </div>
+
+    @if (Model == null || Model.Count == 0)
+    {
+        <div class="empty-state">
+            <h3>Etkinlik Bulunamadı</h3>
+            @if (userRole == "Guest")
+            {
+                <p>Henüz herhangi bir etkinliğe davet edilmediniz.</p>
+            }
+            else
+            {
+                <p>Henüz bir etkinlik oluşturmadınız. Başlamak için ilk etkinliğinizi oluşturun!</p>
+                <a href="/Events/Create" class="btn btn-primary">İlk Etkinliğini Oluştur</a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="events-grid">
+            @foreach (var evt in Model)
+            {
+                // Resolve Category/Location names from Guid? IDs (new version),
+                // fallback to old string fields (old version).
+                var categoryText = "";
+                var locationText = "";
+
+                // 1) New system: CategoryId/LocationId (Guid?)
+                if (evt.CategoryId.HasValue && categoryMap.TryGetValue(evt.CategoryId.Value, out var cName))
+                    categoryText = cName;
+
+                if (evt.LocationId.HasValue && locationMap.TryGetValue(evt.LocationId.Value, out var lName))
+                    locationText = lName;
+
+                // 2) Old system fallback: evt.Category / evt.Location (string)
+                if (string.IsNullOrWhiteSpace(categoryText) && !string.IsNullOrWhiteSpace(evt.Category))
+                    categoryText = evt.Category;
+
+                if (string.IsNullOrWhiteSpace(locationText) && !string.IsNullOrWhiteSpace(evt.Location))
+                    locationText = evt.Location;
+
+                <div class="event-card">
+                    <div class="event-header">
+                        <div>
+                            <div class="event-title">@evt.Name</div>
+
+                            @if (!string.IsNullOrWhiteSpace(categoryText))
+                            {
+                                <div style="color: #999; font-size: 13px;">📁 @categoryText</div>
+                            }
+                        </div>
+
+                        <span class="event-status status-@((evt.Status ?? "").ToLower())">@evt.Status</span>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(evt.Description))
+                    {
+                        <div class="event-description">
+                            @(evt.Description.Length > 100 ? evt.Description.Substring(0, 100) + "..." : evt.Description)
+                        </div>
+                    }
+
+                    <div class="event-info">
+                        <strong>📅 Başlangıç:</strong> @evt.StartDate.ToString("dd MMM yyyy HH:mm")
+                    </div>
+
+                    <div class="event-info">
+                        <strong>🏁 Bitiş:</strong> @evt.EndDate.ToString("dd MMM yyyy HH:mm")
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(locationText))
+                    {
+                        <div class="event-info">
+                            <strong>📍 Konum:</strong> @locationText
+                        </div>
+                    }
+
+                    @if (evt.Budget.HasValue)
+                    {
+                        <div class="event-info">
+                            <strong>💰 Bütçe:</strong> $@evt.Budget.Value.ToString("N2")
+                        </div>
+                    }
+
+                    <div class="event-footer">
+                        <div class="organizer-info">
+                            Organizatör: @evt.Organizer?.Username
+                        </div>
+                        <a href="/Events/Details/@evt.Id" class="btn btn-details">Detayları Gör</a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+</body>
+</html>

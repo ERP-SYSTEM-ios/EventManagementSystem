@@ -1,0 +1,140 @@
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yeni Konum - Etkinlik Yönetim Sistemi</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body{
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height:100vh;
+            padding:20px;
+        }
+        .navbar{
+            background:white;
+            padding:15px 30px;
+            border-radius:10px;
+            margin-bottom:30px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            box-shadow:0 5px 15px rgba(0,0,0,0.1);
+        }
+        .navbar h1{ color:#667eea; font-size:22px; }
+        .navbar-right{ display:flex; gap:12px; align-items:center; }
+        .btn{
+            padding:10px 16px;
+            border:none;
+            border-radius:6px;
+            cursor:pointer;
+            text-decoration:none;
+            font-weight:700;
+            transition:transform .2s, opacity .2s;
+            display:inline-block;
+        }
+        .btn:hover{ transform: translateY(-2px); opacity:.95; }
+        .btn-back{ background:#95a5a6; color:#fff; }
+        .container{
+            max-width:800px;
+            margin:0 auto;
+            background:white;
+            padding:30px;
+            border-radius:12px;
+            box-shadow:0 10px 25px rgba(0,0,0,0.2);
+        }
+        h2{ color:#333; margin-bottom:8px; }
+        .muted{ color:#777; font-size:13px; margin-bottom:18px; }
+        .form-group{ margin-bottom:16px; }
+        label{ display:block; margin-bottom:8px; color:#555; font-weight:800; }
+        input{
+            width:100%;
+            padding:12px;
+            border:1px solid #ddd;
+            border-radius:8px;
+            font-size:14px;
+            font-family:inherit;
+        }
+        input:focus{
+            outline:none;
+            border-color:#667eea;
+        }
+        .error{
+            background:#fee;
+            color:#c33;
+            padding:10px;
+            border-radius:8px;
+            margin-bottom:12px;
+            border:1px solid #f5c2c7;
+        }
+        .btn-submit{
+            width:100%;
+            padding:14px;
+            border:none;
+            border-radius:8px;
+            font-weight:800;
+            cursor:pointer;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color:#fff;
+            font-size:15px;
+        }
+        .grid{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:14px;
+        }
+        media (max-width: 700px){
+            .grid{ grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Etkinlik Yönetim Sistemi</h1>
+        <div class="navbar-right">
+            <a href="/Locations" class="btn btn-back">← Konumlara Dön</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Yeni Konum</h2>
+        <div class="muted">Konum adı zorunludur. Diğer alanlar opsiyoneldir.</div>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="error">@ViewBag.Error</div>
+        }
+
+        <form method="post">
+            <div class="form-group">
+                <label for="name">Konum Adı</label>
+                <input id="name" type="text" name="name" required placeholder="Örn: Conference Hall A" />
+            </div>
+
+            <div class="grid">
+                <div class="form-group">
+                    <label for="city">Şehir</label>
+                    <input id="city" type="text" name="city" placeholder="Örn: Ankara" />
+                </div>
+
+                <div class="form-group">
+                    <label for="capacity">Kapasite</label>
+                    <input id="capacity" type="number" name="capacity" min="0" placeholder="Örn: 200" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="address">Adres</label>
+                <input id="address" type="text" name="address" placeholder="Örn: Ana Cadde 123, Kat 2" />
+            </div>
+
+            <button type="submit" class="btn-submit">Kaydet</button>
+        </form>
+    </div>
+</body>
+</html>

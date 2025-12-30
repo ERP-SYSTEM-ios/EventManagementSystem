@@ -1,0 +1,304 @@
+@model List<EventManagementSystem.Models.Invitation>
+@{
+    ViewData["Title"] = "Davetlerim";
+    var username = ViewBag.Username as string ?? "";
+    var userRole = ViewBag.UserRole as string ?? "";
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Davetlerim - Etkinlik Yönetim Sistemi</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .navbar {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .navbar h1 {
+            font-size: 22px;
+            color: #4a4a4a;
+            font-weight: 700;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-info {
+            color: #555;
+            font-size: 14px;
+            background: #f3f4f6;
+            padding: 8px 12px;
+            border-radius: 10px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: transform .08s ease, opacity .2s ease;
+        }
+        .btn:hover { transform: translateY(-1px); opacity: .95; }
+        .btn:active { transform: translateY(0px); opacity: .9; }
+
+        .btn-secondary { background: #10b981; color: white; }
+        .btn-logout { background: #ef4444; color: white; }
+        .btn-accept { background: #22c55e; color: white; }
+        .btn-decline { background: #ef4444; color: white; }
+
+        .page-card {
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.16);
+            padding: 22px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .page-header h2 {
+            font-size: 26px;
+            color: #222;
+        }
+
+        .sub {
+            color: #666;
+            font-size: 14px;
+            margin-top: 6px;
+        }
+
+        .alerts { margin: 14px 0; }
+        .alert {
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .alert-success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+        .alert-error { background: #fef2f2; color: #7f1d1d; border: 1px solid #fecaca; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-top: 12px;
+        }
+
+        media (max-width: 900px) {
+            .grid { grid-template-columns: 1fr; }
+            .navbar { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .navbar-right { width:100%; justify-content: space-between; }
+        }
+
+        .invite-card {
+            border: 1px solid #eee;
+            border-radius: 14px;
+            padding: 16px;
+            background: #fafafa;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+        }
+
+        .invite-top {
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .badge {
+            font-size: 12px;
+            font-weight: 800;
+            padding: 6px 10px;
+            border-radius: 999px;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .badge-pending { background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; }
+        .badge-accepted { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+        .badge-declined { background: #fef2f2; color: #7f1d1d; border: 1px solid #fecaca; }
+
+        .kv {
+            display:flex;
+            flex-direction:column;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .row {
+            display:flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            color:#444;
+            font-size: 14px;
+        }
+
+        .label { color:#777; font-weight:700; }
+
+        .actions {
+            display:flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .actions form { display:inline; }
+
+        .empty {
+            margin-top: 14px;
+            padding: 18px;
+            border-radius: 12px;
+            background: #f3f4f6;
+            color:#444;
+            border: 1px dashed #cbd5e1;
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 12px;
+            color:#555;
+            background: #fff;
+            border: 1px solid #eee;
+            padding: 6px 8px;
+            border-radius: 10px;
+            display:inline-block;
+            max-width:100%;
+            overflow:hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <div class="navbar">
+            <h1>Etkinlik Yönetim Sistemi</h1>
+            <div class="navbar-right">
+                <span class="user-info">Hoş geldin, <strong>@username</strong> (@userRole)</span>
+                <a class="btn btn-secondary" href="/Events/Index">Etkinliklerim</a>
+                <a class="btn btn-logout" href="/Auth/Logout">Çıkış Yap</a>
+            </div>
+        </div>
+
+        <div class="page-card">
+            <div class="page-header">
+                <div>
+                    <h2>Davetlerim</h2>
+                    <div class="sub">Davetleri kabul edin veya reddedin. Kabul ettiğinizde katılımcı olarak ekleneceksiniz.</div>
+                </div>
+            </div>
+
+            <div class="alerts">
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-error">@TempData["Error"]</div>
+                }
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success">@TempData["Success"]</div>
+                }
+            </div>
+
+            @if (Model == null || !Model.Any())
+            {
+                <div class="empty">
+                    <strong>Bekleyen davet yok.</strong>
+                    <div style="margin-top:6px;">Birisi sizi davet ederse burada görünecek.</div>
+                </div>
+            }
+            else
+            {
+                <div class="grid">
+                    @foreach (var inv in Model)
+                    {
+                        var status = (inv.Status ?? "Pending").Trim();
+                        var statusText = 
+                            status == "Accepted" ? "Kabul Edildi" :
+                            status == "Declined" ? "Reddedildi" :
+                            "Beklemede";
+                        var badgeClass =
+                            status == "Accepted" ? "badge-accepted" :
+                            status == "Declined" ? "badge-declined" :
+                            "badge-pending";
+
+                        <div class="invite-card">
+                            <div class="invite-top">
+                                <div>
+                                    <div class="row">
+                                        <span class="label">Etkinlik Adı:</span>
+                                        <span class="mono">@(!string.IsNullOrWhiteSpace(inv.Event?.Name) ? inv.Event!.Name : "Etkinlik")</span>
+                                    </div>
+                                    <div class="kv">
+                                        <div class="row">
+                                            <span class="label">Rol:</span>
+                                            <span>@(inv.InvitedRole == "Guest" ? "Misafir" : inv.InvitedRole == "Organizer" ? "Organizatör" : inv.InvitedRole)</span>
+                                        </div>
+                                        <div class="row">
+                                            <span class="label">Gönderilme:</span>
+                                            <span>@inv.CreatedAt.ToString("dd MMM yyyy HH:mm")</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="badge @badgeClass">@statusText</span>
+                            </div>
+
+                            @if (status == "Pending")
+                            {
+                                <div class="actions">
+                                    <form asp-action="Accept" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@inv.Id" />
+                                        <button class="btn btn-accept" type="submit">✅ Kabul Et</button>
+                                    </form>
+
+                                    <form asp-action="Decline" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@inv.Id" />
+                                        <button class="btn btn-decline" type="submit">❌ Reddet</button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</body>
+</html>

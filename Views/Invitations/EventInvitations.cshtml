@@ -1,0 +1,119 @@
+@model List<EventManagementSystem.Models.Invitation>
+@{
+    ViewData["Title"] = "Davetler";
+    var ev = ViewBag.Event as EventManagementSystem.Models.Event;
+
+    int pending = Model.Count(i => i.Status == "Pending");
+    int accepted = Model.Count(i => i.Status == "Accepted");
+    int declined = Model.Count(i => i.Status == "Declined");
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Davetler</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .title { font-size: 22px; font-weight: 800; color: #333; margin-bottom: 6px; }
+        .sub { color:#666; margin-bottom: 14px; }
+
+        .stats { display:flex; gap:10px; flex-wrap:wrap; margin: 12px 0 18px; }
+        .pill { padding:8px 12px; border-radius:999px; font-weight:800; font-size:13px; background:#eee; color:#333; }
+        .p-pending { background:#fff3cd; color:#856404; }
+        .p-accepted { background:#d4edda; color:#155724; }
+        .p-declined { background:#f8d7da; color:#721c24; }
+
+        table { width:100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align:left; padding: 12px 10px; border-bottom: 1px solid #eee; }
+        th { color:#333; font-weight: 800; }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-primary { background:#667eea; color:white; }
+        .btn-secondary { background:#eee; color:#333; }
+
+        .empty { color:#666; margin-top: 12px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <div class="title">Davetler</div>
+        <div class="sub">Etkinlik: <strong>@(ev?.Name ?? "Etkinlik")</strong></div>
+
+        <div class="stats">
+            <div class="pill p-pending">Pending: @pending</div>
+            <div class="pill p-accepted">Accepted: @accepted</div>
+            <div class="pill p-declined">Declined: @declined</div>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a class="btn btn-primary" href="/Invitations/Create?eventId=@ev?.Id">+ Yeni Davet</a>
+            <a class="btn btn-secondary" href="/Events/Details/@ev?.Id">Etkinliğe Dön</a>
+        </div>
+
+        @if (Model == null || Model.Count == 0)
+        {
+            <div class="empty">Henüz davet yok.</div>
+        }
+        else
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Durum</th>
+                        <th>Gönderim</th>
+                        <th>Yanıt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var i in Model)
+                {
+                    string statusClass = i.Status == "Accepted" ? "p-accepted"
+                                      : i.Status == "Declined" ? "p-declined"
+                                      : "p-pending";
+
+                    <tr>
+                        <td>@i.Email</td>
+                        <td>@i.Role</td>
+                        <td><span class="pill @statusClass">@i.Status</span></td>
+                        <td>@i.SentAt.ToString("dd MMM yyyy HH:mm")</td>
+                        <td>@(i.RespondedAt.HasValue ? i.RespondedAt.Value.ToString("dd MMM yyyy HH:mm") : "-")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+</body>
+</html>
